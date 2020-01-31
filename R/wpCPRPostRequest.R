@@ -4,26 +4,28 @@
 #
 #' wpCPRPostRequest function to send POST request 
 #'
+#' @param path Sub-path to the API 
+#' @param args Extra arguments for httr::POST
 #' @rdname wpCPRPostRequest
 #' @return string
 wpCPRPostRequest <- function(path='v1/services/stats', args) {
   
   base_url <- getOption("BASE_WP_API_URL")
   
-  url <- modify_url(base_url, path = path)
+  url <- httr::modify_url(base_url, path = path)
   
-  resp <- POST(url, body=args, encode = "json") # verbose(info = TRUE)
+  resp <- httr::POST(url, body=args, encode = "json") # verbose(info = TRUE)
   
-  if (http_type(resp) != "application/json") {
+  if (httr::http_type(resp) != "application/json") {
     stop("API did not return json", call. = FALSE)
   }
   
-  parsed <- jsonlite::fromJSON(suppressMessages(content(resp, 
-                                                        "text", 
-                                                        encoding = "UTF-8")
-  ), simplifyVector = FALSE)
+  parsed <- jsonlite::fromJSON(suppressMessages(httr::content(resp,
+                                                               "text", 
+                                                               encoding = "UTF-8")), 
+                               simplifyVector = FALSE)
   
-  if (http_error(resp)) {
+  if (httr::http_error(resp)) {
     mssg <- sprintf("WorldPop API request failed :: %s ", parsed$error_message)
     stop(mssg, call. = FALSE)
   }

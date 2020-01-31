@@ -7,6 +7,9 @@
 #' If "frm" is set to "hms" then output will be h:m:s
 #' otherwise only hours will be returned
 #'
+#' @param start Starting time
+#' @param end Ending time
+#' @param frm If "frm" is set to "hms" then output will be h:m:s
 #' @rdname wpCPRTimeDiff
 #' @return numeric
 wpCPRTimeDiff <- function(start, end, frm="hms") {

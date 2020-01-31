@@ -4,6 +4,7 @@
 #
 #' wpCPRGetBaseURL function to return a URL of API
 #'
+#' @param url URL path to WorldPop API
 #' @rdname wpCPRGetBaseURL
 #' @return string
 wpCPRGetBaseURL  <- function(url){
