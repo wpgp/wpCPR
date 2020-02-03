@@ -37,5 +37,5 @@ Where
  - **api_key** API key to access WorldPop API. If not provided then limited access will be granted                
  - **verbose**  If TRUE then the progress will be shown  
  
-#License
-* [GNU General Public License v3.0 (GNU GPLv3)](https://github.com/wpgp/wopr/blob/master/COPYING) - GNU General Public License v3.0 (GNU GPLv3)
+## License
+* [GNU General Public License v3.0 (GNU GPLv3)](https://github.com/wpgp/wopr/blob/master/COPYING) 
