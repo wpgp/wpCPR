@@ -20,6 +20,7 @@ After installation you should be able to a main function from the library:
  
  This function will submitt a custom polygon to WorldPop API to get a estimated population for each polygons.
  
+```
  wpCPRPopulation(year,
                  shapefile,
                  attribute_key, 
@@ -27,7 +28,7 @@ After installation you should be able to a main function from the library:
                  addpopshp=FALSE,
                  api_key=NULL,
                  verbose=FALSE)
-                 
+```                 
 Where
  - **year** is a year of dataset (2000-2020), default is 2000
  - **shapefile** path to the shapefile
