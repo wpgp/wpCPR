@@ -28,7 +28,8 @@ After installation you should be able to a main function from the library:
                  addpopshp=FALSE,
                  api_key=NULL,
                  verbose=FALSE)
-```                 
+```
+
 Where
  - **year** is a year of dataset (2000-2020), default is 2000
  - **shapefile** path to the shapefile

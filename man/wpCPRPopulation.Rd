@@ -14,7 +14,7 @@ wpCPRPopulation(
   addpopshp = FALSE,
   api_key = NULL,
   callback_time = 5,
-  max_exec_time = 600,
+  max_exec_time = 1800,
   wp_API_url = NULL,
   verbose = FALSE
 )

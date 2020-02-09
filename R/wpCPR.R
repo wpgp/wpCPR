@@ -30,7 +30,7 @@ wpCPRPopulation <-function(year=2000,
                           addpopshp=FALSE,
                           api_key=NULL,
                           callback_time=5,
-                          max_exec_time=600,
+                          max_exec_time=1800,
                           wp_API_url=NULL,
                           verbose=FALSE) {
   
@@ -77,11 +77,13 @@ wpCPRPopulation <-function(year=2000,
   }
   
   # creating a dataframe to keep results from api
-  df <- stats::setNames(data.frame(matrix(ncol = 5, nrow = 0)), 
+  df <- stats::setNames(data.frame(matrix(ncol = 7, nrow = 0)), 
                  c('index', 
+                   'year',
                    "pop", 
                    "taskid", 
                    "status", 
+                   "message",
                    "executiontime"))
   
   for(i in 1:nrow(spdframe)) { 
@@ -112,9 +114,11 @@ wpCPRPopulation <-function(year=2000,
     df <- rbind(df,
                 data.frame(
                   index=as.character(p@data[[attribute_key]]),
+                  year=year,
                   pop=0,
                   taskid=resp$taskid,
                   status=resp$status,
+                  message='',
                   executiontime='',
                   stringsAsFactors=FALSE 
                 )
@@ -129,7 +133,7 @@ wpCPRPopulation <-function(year=2000,
   while( nrow(df[df$status=='created',]) != 0) {
     
     if (tmpt > max_exec_time){
-      stop(paste0("You have reached a maximum execution time", max_exec_time))
+      stop(paste0("You have reached a maximum execution time of ", max_exec_time," sec." ))
       break;
     }
     
@@ -143,11 +147,13 @@ wpCPRPopulation <-function(year=2000,
         
         if (rsp_task$status == 'finished' & rsp_task$error == FALSE){
           df[i,'status'] <- 'finished'
+          df[i,'message'] <- ''
           df[i,'pop'] <- rsp_task$data$total_population
           df[i,'executiontime'] <- paste0(rsp_task$executionTime)
           if (verbose) print(paste0("+ ", df[i,'index'] , " :: task ID: ", taskid ," finished")) 
         }else if ( rsp_task$error == TRUE ){
           df[i,'status'] <- 'ERROR'
+          df[i,'message'] <- rsp_task$data$error_message
           df[i,'pop'] <- 0
           df[i,'executiontime'] <- paste0(rsp_task$executionTime)
           if (verbose) print(paste0("- ", df[i,'index'] , " :: task ID: ", taskid ," ERROR"))           
@@ -162,14 +168,14 @@ wpCPRPopulation <-function(year=2000,
     
   }   
   
-  cln <- c(attribute_key, "pop", "taskid", "status", "exec_time")
+  cln <- c(attribute_key, "year", "pop", "taskid", "status", "message", "exec_time")
   colnames(df) <- cln
   
   if (verbose) {
     print(df)
     keeps <- cln
   }else{
-    keeps <- c(attribute_key, "pop")
+    keeps <- c(attribute_key, "year", "pop")
   }
   
   
@@ -200,3 +206,4 @@ wpCPRPopulation <-function(year=2000,
   return(df[keeps])
   
 }
+
