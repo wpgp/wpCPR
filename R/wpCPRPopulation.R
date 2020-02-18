@@ -10,7 +10,7 @@
 #' @param shapefile The path to the shpaefile
 #' @param layer The layer name.
 #' @param attribute_key The name of the attribute in the SHP file
-#' @param outputCVSDir The opath to the output CVS file
+#' @param outputCVSDir The opath to the output CVS file If filename does not exist, the file is created. Otherwise, the existing file is overwritten, unless the FILE_APPEND flag is set
 #' @param addpopshp If TRUE then the total population of each polygon will be added to a new SHP file
 #' @param api_key API key to access the WorldPop API
 #' @param callback_time Default is 5 sec. TIme to call the API server
@@ -22,37 +22,30 @@
 #' @examples
 #' wpCPRPopulation(year=2013, shapefile = file.path("/tmp/Inputs/BFA-HDX-Borders.shp"),attribute_key="admin2Pcod")
 #' 	
-wpCPRPopulation <-function(year=2000, 
-                          shapefile=NULL,
-                          layer=NULL,
-                          attribute_key=NULL,
-                          outputCVSDir=NULL,
-                          addpopshp=FALSE,
-                          api_key=NULL,
-                          callback_time=5,
-                          max_exec_time=1800,
-                          wp_API_url=NULL,
-                          verbose=FALSE) {
+wpCPRPopulation <-function(year=2000,
+                           shapeFilePath=NULL,
+                           outputFilePath=NULL,
+                           apikey=NULL,
+                           callbacktime=5,
+                           maxexectime=1800,
+                           apiurl=NULL,
+                           verbose=FALSE) {
   
   tmStartDw  <- Sys.time()
   
   
-  
-  # get API URL
-  wpCPRGetBaseURL(wp_API_url)
+  stopifnot(!missing(shapeFilePath), !is.null(shapeFilePath))
   
   # Check if SHP file exist and get a name
-  fshp <- is_file_exist(shapefile)
-  
-  # check if output SHP file already exist
-  if (addpopshp){
-    outputSHP <- file.path(fshp[['fpath']],paste0(fshp[['fname']],"_POP_",year,".shp"))
-    if (file.exists(outputSHP)) stop( paste0("Please remove old output SHP file: ", outputSHP), call. = FALSE)
-  }  
+  fshp <- is_file_exist(shapeFilePath)
   
   
-  # Check if output directory exist
-  is_dir_exist(outputCVSDir)
+  # Check if output file exist and get a name
+  fout <- is_output_file_exist(outputFilePath)
+  
+  # get API URL
+  wpCPRGetBaseURL(apiurl)
+
   
   # Check if year is between 2000 and 2020
   is_year_corect(year)
@@ -63,37 +56,32 @@ wpCPRPopulation <-function(year=2000,
     message(paste("Path to shape file: ", fshp[['fpath']]))
     message(paste("Shape file name: ", fshp[['fname']]))
   }  
-  
-  # if user did not confirm a layer name in shapefilewe 
-  # will use the name of the file
-  if (is.null(layer)) layer <- fshp[['fname']]
-  
+
   # read a shapefile 
-  spdframe <- rgdal::readOGR(dsn = fshp[['fpath']], layer = layer, verbose = verbose)
+  nc <- st_read(shapeFilePath)
   
-  # check if entered attribute_key exist in shape file db
-  if (!attribute_key %in% colnames(spdframe@data)){
-    stop( paste0("Attribute key '", attribute_key,"' does not exist in ", fshp[['fbasename']] ))
-  }
+  spdframe <- as.data.frame(nc)
+  spdframe$geometry <- NULL
+
   
   # creating a dataframe to keep results from api
-  df <- stats::setNames(data.frame(matrix(ncol = 7, nrow = 0)), 
-                 c('index', 
+  df <- stats::setNames(data.frame(matrix(ncol = 7, nrow = nrow(nc))), 
+                 c('wpid', 
                    'year',
                    "pop", 
                    "taskid", 
                    "status", 
                    "message",
                    "executiontime"))
-  
-  for(i in 1:nrow(spdframe)) { 
+
+  for(i in 1:nrow(nc)) { 
     
-    p <- spdframe[i,] 
+    p <- nc[i,]$geometry 
     p_json <- geojsonio::geojson_json(p)
     
-    if (verbose) print(paste0("Sending ",
-                              as.character(p@data[[attribute_key]]) , 
-                              " shape file to ", 
+    if (verbose) print(paste0("Sending polygon ",
+                              i , 
+                              " to ", 
                               getOption("BASE_WP_API_URL"))
     )
     
@@ -105,15 +93,15 @@ wpCPRPopulation <-function(year=2000,
                  runasync='true')
     
     # add a API key to hte body request if exist
-    if (!is.null(api_key) && !is.na(api_key) && !is.nan(api_key)) {
-      body[['api_key']] <- api_key
+    if (!is.null(apikey) && !is.na(apikey) && !is.nan(apikey)) {
+      body[['api_key']] <- apikey
     }
     
     resp <- wpCPRPostRequest('v1/services/stats', body)
     
     df <- rbind(df,
                 data.frame(
-                  index=as.character(p@data[[attribute_key]]),
+                  wpid=i,
                   year=year,
                   pop=0,
                   taskid=resp$taskid,
@@ -132,8 +120,8 @@ wpCPRPopulation <-function(year=2000,
   tmpt <- 0
   while( nrow(df[df$status=='created',]) != 0) {
     
-    if (tmpt > max_exec_time){
-      stop(paste0("You have reached a maximum execution time of ", max_exec_time," sec." ))
+    if (tmpt > maxexectime){
+      stop(paste0("You have reached a maximum execution time of ", maxexectime," sec." ))
       break;
     }
     
@@ -150,54 +138,45 @@ wpCPRPopulation <-function(year=2000,
           df[i,'message'] <- ''
           df[i,'pop'] <- rsp_task$data$total_population
           df[i,'executiontime'] <- paste0(rsp_task$executionTime)
-          if (verbose) print(paste0("+ ", df[i,'index'] , " :: task ID: ", taskid ," finished")) 
+          if (verbose) print(paste0("+ ", df[i,'wpid'] , " :: task ID: ", taskid ," finished")) 
         }else if ( rsp_task$error == TRUE ){
           df[i,'status'] <- 'ERROR'
           df[i,'message'] <- rsp_task$data$error_message
           df[i,'pop'] <- 0
           df[i,'executiontime'] <- paste0(rsp_task$executionTime)
-          if (verbose) print(paste0("- ", df[i,'index'] , " :: task ID: ", taskid ," ERROR"))           
+          if (verbose) print(paste0("- ", df[i,'wpid'] , " :: task ID: ", taskid ," ERROR"))           
         }
         
       }
       
     }
-    tmpt <- tmpt + callback_time
+    tmpt <- tmpt + callbacktime
     
-    if (nrow(df[df$status=='finished',]) != nrow(spdframe)) Sys.sleep(callback_time)
+    if (nrow(df[df$status=='finished',]) != nrow(nc)) Sys.sleep(callbacktime)
     
   }   
   
-  cln <- c(attribute_key, "year", "pop", "taskid", "status", "message", "exec_time")
-  colnames(df) <- cln
-  
+ 
   if (verbose) {
     print(df)
     keeps <- cln
   }else{
-    keeps <- c(attribute_key, "year", "pop")
+    keeps <- c('wpid', "year", "pop")
   }
   
+
+  spdframe <- cbind(spdframe, df$year, df$pop)
+  names(spdframe)[length(names(spdframe))-1] <- "year" 
+  names(spdframe)[length(names(spdframe))] <- "pop"
   
-  if (!is.null(outputCVSDir)) {
-    cvs.flname <- paste0(fshp[['fname']],"_POP_",year,".csv")
-    cvs.dir.flname <-file.path(outputCVSDir,cvs.flname)
-    if (verbose) message(paste("Results are saved at ", cvs.dir.flname))
-    write.csv(df[keeps], file = cvs.dir.flname, row.names=FALSE)
+  
+  if (!is.null(outputFilePath)) {
+    # cvs.flname <- paste0(fshp[['fname']],"_POP_",year,".csv")
+    # cvs.dir.flname <-file.path(outputCVSDir,cvs.flname)
+    if (verbose) message(paste("Results are saved at ", outputFilePath))
+    write.csv(spdframe, file = outputFilePath, row.names=FALSE)
   }
-  
-  
-  if (addpopshp){
-    
-    spdframe.merged <- merge(spdframe, df[c(attribute_key, "pop")], by = attribute_key)
-    writeOGR(obj=spdframe.merged, 
-             dsn=fshp[['fpath']], 
-             layer=paste0(fshp[['fname']],"_POP_",year), 
-             driver="ESRI Shapefile")
-    
-    if (verbose) message(paste("A new shapefile with population was saved at ", fshp[['fpath']]))
-    
-  }
+
   
   
   tmEndDw  <- Sys.time()

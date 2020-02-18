@@ -32,7 +32,7 @@ is_year_corect <-function(y) {
 is_file_exist <-function(f) {
   
   if (is.null(f)) stop("Error: Enter a valid path to a shape file" , call. = FALSE)
-  if (!file.exists(f)) stop( paste0("Please check file exists: ", f), call. = FALSE)
+  if (!file.exists(f)) stop( paste0("Please check if file exists: ", f), call. = FALSE)
   
   f.path = dirname(normalizePath(f))
   f.basename = basename(f)
@@ -41,3 +41,18 @@ is_file_exist <-function(f) {
   return(c(fpath=f.path,fbasename=f.basename,fname=f.name))
 }
 
+
+is_output_file_exist <-function(f) {
+  
+  if (is.null(f)) stop("Error: Enter a valid path to a shape file" , call. = FALSE)
+  if (file.exists(f)) stop( paste0("Output file : ", f," already exists. Please remove the file before continuing." ), call. = FALSE)
+  
+  f.path = dirname(normalizePath(f))
+  
+  is_dir_exist(f.path)
+  
+  f.basename = basename(f)
+  f.name = substr(basename(f.basename), 1, nchar(basename(f.basename)) - 4)  
+  
+  return(c(fpath=f.path,fbasename=f.basename,fname=f.name))
+}
