@@ -7,20 +7,17 @@
 #' 
 #'
 #' @param year The year of the population (2000-2020)
-#' @param shapefile The path to the shpaefile
-#' @param layer The layer name.
-#' @param attribute_key The name of the attribute in the SHP file
-#' @param outputCVSDir The opath to the output CVS file If filename does not exist, the file is created. Otherwise, the existing file is overwritten, unless the FILE_APPEND flag is set
-#' @param addpopshp If TRUE then the total population of each polygon will be added to a new SHP file
-#' @param api_key API key to access the WorldPop API
-#' @param callback_time Default is 5 sec. TIme to call the API server
-#' @param max_exec_time Default is 600 sec. Max execution time of the request.
-#' @param wp_API_url URL to WorldPop API
+#' @param shapeFilePath The path to the shpaefile
+#' @param outputFilePath The opath to the output CVS file. If filename does not exist, the file is created. 
+#' @param apikey API key to access the WorldPop API
+#' @param callbacktime Default is 5 sec. TIme to call the API server
+#' @param maxexectime Default is 600 sec. Max execution time of the request.
+#' @param apiurl URL to WorldPop API
 #' @param verbose If TRUE then the progress will be shown
 #' @return DataFrame* object
 #' @export
 #' @examples
-#' wpCPRPopulation(year=2013, shapefile = file.path("/tmp/Inputs/BFA-HDX-Borders.shp"),attribute_key="admin2Pcod")
+#' wpCPRPopulation(year=2013, shapeFilePath = file.path("/tmp/Inputs/BFA-HDX-Borders.shp"),attribute_key="admin2Pcod")
 #' 	
 wpCPRPopulation <-function(year=2000,
                            shapeFilePath=NULL,
@@ -30,6 +27,10 @@ wpCPRPopulation <-function(year=2000,
                            maxexectime=1800,
                            apiurl=NULL,
                            verbose=FALSE) {
+  library(geojsonio)
+  library(httr)
+  require(sf)
+  shapeFilePath = "D:\\Work\\R_Script\\HDX\\ssd_admbnda_adm2_imwg_nbs_20180817\\ssd_admbnda_adm2_imwg_nbs_20180817.shp"
   
   tmStartDw  <- Sys.time()
   
@@ -52,9 +53,9 @@ wpCPRPopulation <-function(year=2000,
   
   # print the information about parameters
   if (verbose){
-    message(paste("Year: ", year))
-    message(paste("Path to shape file: ", fshp[['fpath']]))
-    message(paste("Shape file name: ", fshp[['fname']]))
+    cat(paste("Year: ", year,"\n"))
+    cat(paste("Path to shape file: ", fshp[['fpath']],"\n"))
+    cat(paste("Shape file name: ", fshp[['fname']],"\n"))
   }  
 
   # read a shapefile 
@@ -65,7 +66,7 @@ wpCPRPopulation <-function(year=2000,
 
   
   # creating a dataframe to keep results from api
-  df <- stats::setNames(data.frame(matrix(ncol = 7, nrow = nrow(nc))), 
+  df <- stats::setNames(data.frame(matrix(ncol = 7, nrow = 0)), 
                  c('wpid', 
                    'year',
                    "pop", 
@@ -73,18 +74,21 @@ wpCPRPopulation <-function(year=2000,
                    "status", 
                    "message",
                    "executiontime"))
+  
+  if (verbose) {
+    cat(paste0("Start sending polygon to ", getOption("BASE_WP_API_URL")))
+    tStartSending <- Sys.time()
+  }  
 
   for(i in 1:nrow(nc)) { 
     
     p <- nc[i,]$geometry 
     p_json <- geojsonio::geojson_json(p)
-    
-    if (verbose) print(paste0("Sending polygon ",
-                              i , 
-                              " to ", 
-                              getOption("BASE_WP_API_URL"))
-    )
-    
+
+    if (verbose) {
+      tEndSending <-  Sys.time()
+      wpCPRProgressMessage(i, max=nrow(nc), label= paste0("sending ",i,"'s out of ",nrow(nc),". Processing Time: ", wpCPRTimeDiff(tStartSending,tEndSending)))
+    }
     
     # create a body request
     body <- list(dataset='wpgppop',
@@ -106,8 +110,8 @@ wpCPRPopulation <-function(year=2000,
                   pop=0,
                   taskid=resp$taskid,
                   status=resp$status,
-                  message='',
-                  executiontime='',
+                  message="NA",
+                  executiontime="NA",
                   stringsAsFactors=FALSE 
                 )
     )
@@ -115,7 +119,12 @@ wpCPRPopulation <-function(year=2000,
   
   
   
-  if (verbose) cat(paste0("Sart checing the tasks .....\n")) 
+
+  
+  if (verbose) {
+    cat(paste0("Sart checing the tasks .....\n")) 
+    tStartChecing <- Sys.time()
+  }
   
   tmpt <- 0
   while( nrow(df[df$status=='created',]) != 0) {
@@ -138,51 +147,52 @@ wpCPRPopulation <-function(year=2000,
           df[i,'message'] <- ''
           df[i,'pop'] <- rsp_task$data$total_population
           df[i,'executiontime'] <- paste0(rsp_task$executionTime)
-          if (verbose) print(paste0("+ ", df[i,'wpid'] , " :: task ID: ", taskid ," finished")) 
         }else if ( rsp_task$error == TRUE ){
           df[i,'status'] <- 'ERROR'
           df[i,'message'] <- rsp_task$data$error_message
-          df[i,'pop'] <- 0
-          df[i,'executiontime'] <- paste0(rsp_task$executionTime)
-          if (verbose) print(paste0("- ", df[i,'wpid'] , " :: task ID: ", taskid ," ERROR"))           
+          df[i,'pop'] <- "NA"
+          df[i,'executiontime'] <- paste0(rsp_task$executionTime)        
         }
         
       }
+      
+      if (verbose) {
+        tEndChecing <- Sys.time()
+        ddone <- nrow(df[df[,'status'] == 'finished' | df[,'status'] == 'ERROR',])
+        wpCPRProgressMessage(ddone, max=nrow(df), label= paste0("done. Processing Time: ", wpCPRTimeDiff(tStartChecing,tEndChecing)))
+      }       
       
     }
     tmpt <- tmpt + callbacktime
     
     if (nrow(df[df$status=='finished',]) != nrow(nc)) Sys.sleep(callbacktime)
     
+     
+    
   }   
   
- 
-  if (verbose) {
-    print(df)
-    keeps <- cln
-  }else{
-    keeps <- c('wpid', "year", "pop")
+  if ( nrow(df[df[,'status'] == 'ERROR',]) > 0 ) {
+    message(paste("There were some errors with the following tasks:"))
+    print(df[df[,'status'] == 'ERROR',])
   }
   
+  options(wpCPR_LOG_DF=df)
 
   spdframe <- cbind(spdframe, df$year, df$pop)
   names(spdframe)[length(names(spdframe))-1] <- "year" 
   names(spdframe)[length(names(spdframe))] <- "pop"
-  
-  
+
   if (!is.null(outputFilePath)) {
-    # cvs.flname <- paste0(fshp[['fname']],"_POP_",year,".csv")
-    # cvs.dir.flname <-file.path(outputCVSDir,cvs.flname)
-    if (verbose) message(paste("Results are saved at ", outputFilePath))
+    if (verbose) message(paste("Results were saved at ", outputFilePath))
     write.csv(spdframe, file = outputFilePath, row.names=FALSE)
   }
 
-  
-  
   tmEndDw  <- Sys.time()
   if (verbose) message(paste("It took ", wpCPRTimeDiff(tmStartDw ,tmEndDw,frm="hms"), " to execute. " ))
   
-  return(df[keeps])
+  return(spdframe)
   
 }
+
+
 

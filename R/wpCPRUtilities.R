@@ -44,7 +44,8 @@ is_file_exist <-function(f) {
 
 is_output_file_exist <-function(f) {
   
-  if (is.null(f)) stop("Error: Enter a valid path to a shape file" , call. = FALSE)
+  #if (is.null(f)) stop("Error: Enter a valid path to a shape file" , call. = FALSE)
+  if (is.null(f)) return(invisible(NULL))
   if (file.exists(f)) stop( paste0("Output file : ", f," already exists. Please remove the file before continuing." ), call. = FALSE)
   
   f.path = dirname(normalizePath(f))
