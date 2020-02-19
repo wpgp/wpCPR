@@ -17,37 +17,30 @@
 #' @return DataFrame* object
 #' @export
 #' @examples
-#' wpCPRPopulation(year=2013, shapeFilePath = file.path("/tmp/Inputs/BFA-HDX-Borders.shp"),attribute_key="admin2Pcod")
+#' wpCPRPopulation(year=2013, shapeFilePath = file.path("/tmp/Inputs/BFA-HDX-Borders.shp"))
 #' 	
 wpCPRPopulation <-function(year=2000,
                            shapeFilePath=NULL,
                            outputFilePath=NULL,
                            apikey=NULL,
                            callbacktime=5,
-                           maxexectime=1800,
+                           maxexectime=3600,
                            apiurl=NULL,
                            verbose=FALSE) {
-  library(geojsonio)
-  library(httr)
-  require(sf)
-  shapeFilePath = "D:\\Work\\R_Script\\HDX\\ssd_admbnda_adm2_imwg_nbs_20180817\\ssd_admbnda_adm2_imwg_nbs_20180817.shp"
-  
+
   tmStartDw  <- Sys.time()
-  
-  
+
   stopifnot(!missing(shapeFilePath), !is.null(shapeFilePath))
   
   # Check if SHP file exist and get a name
   fshp <- is_file_exist(shapeFilePath)
-  
-  
+
   # Check if output file exist and get a name
   fout <- is_output_file_exist(outputFilePath)
   
   # get API URL
   wpCPRGetBaseURL(apiurl)
 
-  
   # Check if year is between 2000 and 2020
   is_year_corect(year)
   
@@ -117,10 +110,7 @@ wpCPRPopulation <-function(year=2000,
     )
   }
   
-  
-  
 
-  
   if (verbose) {
     cat(paste0("Sart checing the tasks .....\n")) 
     tStartChecing <- Sys.time()
@@ -130,7 +120,8 @@ wpCPRPopulation <-function(year=2000,
   while( nrow(df[df$status=='created',]) != 0) {
     
     if (tmpt > maxexectime){
-      stop(paste0("You have reached a maximum execution time of ", maxexectime," sec." ))
+      stop(paste0("You have reached a maximum execution time of ", maxexectime," sec.",
+                  "Change param [maxexectime] in the function if you need to run it longer" ))
       break;
     }
     
