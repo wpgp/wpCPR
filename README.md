@@ -50,5 +50,9 @@ wpCPRPopulation (year=2000,shapeFilePath="/home/user/myshapefile.shp", verbose=F
 
  **wpCPRDemographic**  function can be used yo get a total subnational population age-sex structures
  
+ 
+ **Contributing**
+The WorldPop Custom Polygon Request (wpCPR) was developed by the WorldPop Research Group within the Department of Geography and Environmental Science at the University of Southampton. Funding was provided by the Bill and Melinda Gates Foundation and the United Kingdom Department for International Development. The wpCPR R package was developed by Maksym Bondarenko. wpCPR is using REST API to query the population data produced in the framework of Global High Resolution Population Denominators Project - Funded by The Bill and Melinda Gates Foundation (OPP1134076). 
+ 
 ## License
 * [GNU General Public License v3.0 (GNU GPLv3)](https://github.com/wpgp/wopr/blob/master/COPYING) 
