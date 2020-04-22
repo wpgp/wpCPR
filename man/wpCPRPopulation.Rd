@@ -11,7 +11,7 @@ wpCPRPopulation(
   outputFilePath = NULL,
   apikey = NULL,
   callbacktime = 5,
-  maxexectime = 1800,
+  maxexectime = 3600,
   apiurl = NULL,
   verbose = FALSE
 )
@@ -27,7 +27,7 @@ wpCPRPopulation(
 
 \item{callbacktime}{Default is 5 sec. TIme to call the API server}
 
-\item{maxexectime}{Default is 600 sec. Max execution time of the request.}
+\item{maxexectime}{Default is 3600 sec. Max execution time of the request.}
 
 \item{apiurl}{URL to WorldPop API}
 
@@ -41,6 +41,6 @@ wpCPRPopulation function to get a toptal population
 based on shapefile
 }
 \examples{
-wpCPRPopulation(year=2013, shapeFilePath = file.path("/tmp/Inputs/BFA-HDX-Borders.shp"),attribute_key="admin2Pcod")
+wpCPRPopulation(year=2013, shapeFilePath = file.path("/tmp/Inputs/BFA-HDX-Borders.shp"))
 	
 }

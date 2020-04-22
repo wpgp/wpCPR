@@ -4,6 +4,7 @@
 #
 #' wpCPRGetTask function to get respond 
 #'
+#' @importFrom httr http_error 
 #' @param path Sub-path to the API 
 #' @param taskid Task ID of the job on WorldPop API
 #' @rdname wpCPRGetTask
@@ -30,6 +31,12 @@ wpCPRGetTask  <- function(path='v1/tasks/', taskid) {
     mssg <- sprintf("WorldPop API request failed :: %s ", parsed$error_message)
     stop(mssg, call. = FALSE)
   }
+
+  if (parsed$error==TRUE) {
+    mssg <- sprintf("Request failed :: %s Please contact WorldPop. Reference task ID is %s", parsed$error_message, taskid)
+    stop(mssg, call. = FALSE)
+  }  
+  
   
   return(parsed)
   

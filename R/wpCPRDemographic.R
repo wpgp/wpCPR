@@ -5,13 +5,14 @@
 #' wpCPRDemographic function to get a toptal population
 #' based on shapefile
 #' 
-#'
+#' @importFrom sf st_read 
+#' @importFrom geojsonio geojson_json 
 #' @param year The year of the population (2000-2020)
 #' @param shapeFilePath The path to the shpaefile
 #' @param outputFilePath The opath to the output CVS file
 #' @param apikey API key to access the WorldPop API
 #' @param callbacktime Default is 5 sec. TIme to call the API server
-#' @param maxexectime Default is 600 sec. Max execution time of the request.
+#' @param maxexectime Default is 3600 sec. Max execution time of the request.
 #' @param apiurl URL to WorldPop API
 #' @param verbose If TRUE then the progress will be shown
 #' @return DataFrame* object
@@ -79,7 +80,7 @@ wpCPRDemographic <-function(year=2000,
   for(i in 1:nrow(nc)) { 
     
     p <- nc[i,]$geometry 
-    p_json <- geojsonio::geojson_json(p)
+    p_json <-   geojson_json(p)
     
     if (verbose) {
       tEndSending <-  Sys.time()

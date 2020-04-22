@@ -4,6 +4,8 @@
 #
 #' wpCPRPostRequest function to send POST request 
 #'
+#' @importFrom httr modify_url POST http_type http_error
+#' @importFrom jsonlite fromJSON  
 #' @param path Sub-path to the API 
 #' @param args Extra arguments for httr::POST
 #' @rdname wpCPRPostRequest
@@ -12,18 +14,26 @@ wpCPRPostRequest <- function(path='v1/services/stats', args) {
   
   base_url <- getOption("BASE_WP_API_URL")
   
-  url <- httr::modify_url(base_url, path = path)
+  url <- modify_url(base_url, path = path)
   
-  resp <- httr::POST(url, body=args, encode = "json") # verbose(info = TRUE)
+  resp <- POST(url, body=args, encode = "json") # verbose(info = TRUE)
   
-  if (httr::http_type(resp) != "application/json") {
+  if (http_type(resp) != "application/json") {
     stop("API did not return json", call. = FALSE)
   }
   
-  parsed <- jsonlite::fromJSON(suppressMessages(httr::content(resp,
-                                                               "text", 
-                                                               encoding = "UTF-8")), 
-                               simplifyVector = FALSE)
+  parsed <- fromJSON(suppressMessages(httr::content(resp,
+                                                    "text",
+                                                    encoding = "UTF-8")
+                                      ),simplifyVector = FALSE)
+  
+  tidymess <- function(..., prefix = " ", initial = ""){
+    message(strwrap(..., prefix = prefix, initial = initial))
+  }
+  
+  if (httr::status_code(resp)==429) {
+    stop("Your application is sending too many requests per day. (Limit is 100 requests per day. Please contact WorldPop for an API Key to lift a limit)", call. = FALSE)
+  }
   
   if (httr::http_error(resp)) {
     mssg <- sprintf("WorldPop API request failed :: %s ", parsed$error_message)
@@ -33,3 +43,5 @@ wpCPRPostRequest <- function(path='v1/services/stats', args) {
   return(parsed)
   
 }
+
+

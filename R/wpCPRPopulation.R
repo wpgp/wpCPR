@@ -5,13 +5,14 @@
 #' wpCPRPopulation function to get a toptal population
 #' based on shapefile
 #' 
-#'
+#' @importFrom sf st_read 
+#' @importFrom utils write.csv 
 #' @param year The year of the population (2000-2020)
 #' @param shapeFilePath The path to the shpaefile
 #' @param outputFilePath The opath to the output CVS file. If filename does not exist, the file is created. 
 #' @param apikey API key to access the WorldPop API
 #' @param callbacktime Default is 5 sec. TIme to call the API server
-#' @param maxexectime Default is 600 sec. Max execution time of the request.
+#' @param maxexectime Default is 3600 sec. Max execution time of the request.
 #' @param apiurl URL to WorldPop API
 #' @param verbose If TRUE then the progress will be shown
 #' @return DataFrame* object
@@ -46,13 +47,13 @@ wpCPRPopulation <-function(year=2000,
   
   # print the information about parameters
   if (verbose){
-    cat(paste("Year: ", year,"\n"))
-    cat(paste("Path to shape file: ", fshp[['fpath']],"\n"))
-    cat(paste("Shape file name: ", fshp[['fname']],"\n"))
+    message(paste("Year: ", year))
+    message(paste("Path to shape file: ", fshp[['fpath']]))
+    message(paste("Shape file name: ", fshp[['fname']]))
   }  
 
   # read a shapefile 
-  nc <- st_read(shapeFilePath)
+  nc <- st_read(shapeFilePath, quiet = ifelse(verbose, FALSE, TRUE))
   
   spdframe <- as.data.frame(nc)
   spdframe$geometry <- NULL
@@ -69,14 +70,14 @@ wpCPRPopulation <-function(year=2000,
                    "executiontime"))
   
   if (verbose) {
-    cat(paste0("Start sending polygon to ", getOption("BASE_WP_API_URL")))
+    message(paste0("Start sending polygon to ", getOption("BASE_WP_API_URL")))
     tStartSending <- Sys.time()
   }  
 
   for(i in 1:nrow(nc)) { 
     
     p <- nc[i,]$geometry 
-    p_json <- geojsonio::geojson_json(p)
+    p_json <- geojson_json(p)
 
     if (verbose) {
       tEndSending <-  Sys.time()
@@ -89,7 +90,7 @@ wpCPRPopulation <-function(year=2000,
                  geojson=p_json,
                  runasync='true')
     
-    # add a API key to hte body request if exist
+    # add a API key to the body request if exist
     if (!is.null(apikey) && !is.na(apikey) && !is.nan(apikey)) {
       body[['api_key']] <- apikey
     }
@@ -112,7 +113,7 @@ wpCPRPopulation <-function(year=2000,
   
 
   if (verbose) {
-    cat(paste0("Sart checing the tasks .....\n")) 
+    message(paste0("Sart checing the tasks .....")) 
     tStartChecing <- Sys.time()
   }
   
@@ -164,7 +165,7 @@ wpCPRPopulation <-function(year=2000,
   
   if ( nrow(df[df[,'status'] == 'ERROR',]) > 0 ) {
     message(paste("There were some errors with the following tasks:"))
-    print(df[df[,'status'] == 'ERROR',])
+    message(df[df[,'status'] == 'ERROR',])
   }
   
   options(wpCPR_LOG_DF=df)
@@ -184,6 +185,5 @@ wpCPRPopulation <-function(year=2000,
   return(spdframe)
   
 }
-
 
 

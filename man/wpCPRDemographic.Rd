@@ -7,38 +7,29 @@ based on shapefile}
 \usage{
 wpCPRDemographic(
   year = 2000,
-  shapefile = NULL,
-  layer = NULL,
-  attribute_key = NULL,
-  outputCVSDir = NULL,
-  addpopshp = FALSE,
-  api_key = NULL,
-  callback_time = 5,
-  max_exec_time = 1800,
-  wp_API_url = NULL,
+  shapeFilePath = NULL,
+  outputFilePath = NULL,
+  apikey = NULL,
+  callbacktime = 5,
+  maxexectime = 3600,
+  apiurl = NULL,
   verbose = FALSE
 )
 }
 \arguments{
 \item{year}{The year of the population (2000-2020)}
 
-\item{shapefile}{The path to the shpaefile}
+\item{shapeFilePath}{The path to the shpaefile}
 
-\item{layer}{The layer name.}
+\item{outputFilePath}{The opath to the output CVS file}
 
-\item{attribute_key}{The name of the attribute in the SHP file}
+\item{apikey}{API key to access the WorldPop API}
 
-\item{outputCVSDir}{The opath to the output CVS file}
+\item{callbacktime}{Default is 5 sec. TIme to call the API server}
 
-\item{addpopshp}{If TRUE then the total population of each polygon will be added to a new SHP file}
+\item{maxexectime}{Default is 3600 sec. Max execution time of the request.}
 
-\item{api_key}{API key to access the WorldPop API}
-
-\item{callback_time}{Default is 5 sec. TIme to call the API server}
-
-\item{max_exec_time}{Default is 600 sec. Max execution time of the request.}
-
-\item{wp_API_url}{URL to WorldPop API}
+\item{apiurl}{URL to WorldPop API}
 
 \item{verbose}{If TRUE then the progress will be shown}
 }
@@ -50,6 +41,6 @@ wpCPRDemographic function to get a toptal population
 based on shapefile
 }
 \examples{
-wpCPRDemographic(year=2013, shapefile = file.path("/tmp/Inputs/BFA-HDX-Borders.shp"),attribute_key="admin2Pcod")
+wpCPRDemographic(year=2013, shapeFilePath = file.path("/tmp/Inputs/BFA-HDX-Borders.shp"))
 	
 }

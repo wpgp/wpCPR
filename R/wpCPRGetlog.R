@@ -3,6 +3,8 @@
 # Version 0.1
 #
 #' wpCPRGetlog function will return a data.frame
+#' 
+#' @importFrom utils write.csv 
 #' @rdname wpCPRGetlog
 #' @param file The path to the shpaefile
 #' @return A data.frame with a log data of last API calls
