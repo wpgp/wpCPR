@@ -2,7 +2,7 @@
 # Date :  Jan 2019
 # Version 0.1
 
-#' wpCPRDemographic function to get a toptal population
+#' wpCPRDemographic function to get a toptal subnational population age-sex structures
 #' based on shapefile
 #' 
 #' @importFrom sf st_read 
