@@ -41,7 +41,14 @@ Where
  - **apiurl**  URL to WorldPop API (Defaiilt https://api.worldpop.org/)
  - **verbose** If TRUE then the progress will be shown (Defailt FALSE)
 
- **wpCPRDemographic**  function can be used yo get a toptal subnational population age-sex structures
+Example:
+ 
+```
+wpCPRPopulation (year=2000,shapeFilePath="/home/user/myshapefile.shp", verbose=FALSE)
+
+```
+
+ **wpCPRDemographic**  function can be used yo get a total subnational population age-sex structures
  
 ## License
 * [GNU General Public License v3.0 (GNU GPLv3)](https://github.com/wpgp/wopr/blob/master/COPYING) 
