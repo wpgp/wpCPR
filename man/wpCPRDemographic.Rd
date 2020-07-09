@@ -2,7 +2,7 @@
 % Please edit documentation in R/wpCPRDemographic.R
 \name{wpCPRDemographic}
 \alias{wpCPRDemographic}
-\title{wpCPRDemographic function to get a toptal population
+\title{wpCPRDemographic function to get a toptal subnational population age-sex structures
 based on shapefile}
 \usage{
 wpCPRDemographic(
@@ -37,7 +37,7 @@ wpCPRDemographic(
 DataFrame* object
 }
 \description{
-wpCPRDemographic function to get a toptal population
+wpCPRDemographic function to get a toptal subnational population age-sex structures
 based on shapefile
 }
 \examples{

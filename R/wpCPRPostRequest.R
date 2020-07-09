@@ -32,8 +32,12 @@ wpCPRPostRequest <- function(path='v1/services/stats', args) {
   }
   
   if (httr::status_code(resp)==429) {
-    stop("Your application is sending too many requests per day. (Limit is 100 requests per day. Please contact WorldPop for an API Key to lift a limit)", call. = FALSE)
+    stop("Your application is sending too many requests per day. (Limit is 1000 requests per day. Please contact WorldPop for an API Key to lift a limit)", call. = FALSE)
   }
+  
+  if (httr::status_code(resp)==403) {
+    stop("Wrong KEY was provided or REST API is not enabled for this key", call. = FALSE)
+  }  
   
   if (httr::http_error(resp)) {
     mssg <- sprintf("WorldPop API request failed :: %s ", parsed$error_message)

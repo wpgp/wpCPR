@@ -96,7 +96,7 @@ wpCPRDemographic <-function(year=2000,
     
     # add a API key to hte body request if exist
     if (!is.null(apikey) && !is.na(apikey) && !is.nan(apikey)) {
-      body[['api_key']] <- apikey
+      body[['key']] <- apikey
     }
     
     resp <- wpCPRPostRequest('v1/services/stats', body)
