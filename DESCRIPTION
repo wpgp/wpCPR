@@ -1,8 +1,8 @@
 Package: wpCPR
 Type: Package
 Title: An R package to submit a custom polygon request to the WorldPop API 
-Version: 0.1.0
-Author: Maksym Bondarenko
+Version: 0.1.1
+Author: Maksym Bondarenko, Doug Leasure
 Maintainer: The package maintainer <mb4@soton.ac.uk>
 Depends: R (>= 4.0.0) , geojsonio, sf
 Imports:
